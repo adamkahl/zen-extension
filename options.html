@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zen Tidy Up Options</title>
+  <link href="lib/bootstrap.min.css" rel="stylesheet">
+  <link href="lib/fontawesome/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <!-- Auto-save indicator -->
+  <div id="status" class="auto-save-indicator">
+    <i class="fas fa-check-circle"></i>
+    <span>Saved</span>
+  </div>
+
+  <div class="container">
+    <!-- Groups Section -->
+    <div class="card">
+      <div class="card-header">
+        <h2>
+          <i class="fas fa-folder"></i>
+          Groups
+        </h2>
+        <p>Create groups to organize your tab renaming rules</p>
+      </div>
+      <div class="card-body">
+        <div id="groups-container"></div>
+        <button id="add-group" class="btn btn-add mt-3">
+          <i class="fas fa-plus"></i> Add Group
+        </button>
+      </div>
+    </div>
+
+    <!-- Pairings Section -->
+    <div class="card">
+      <div class="card-header">
+        <h1>
+          <i class="fas fa-link"></i>
+          URL Patterns
+        </h1>
+        <p>Configure URL patterns and custom tab names for a cleaner browsing experience. Changes are saved automatically.</p>
+      </div>
+      <div class="card-body">
+        <div id="pairings-container"></div>
+        
+        <div style="margin-top: 2rem;">
+          <button id="add-pairing" class="btn btn-add">
+            <i class="fas fa-plus"></i> Add Pairing
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import/Export Section (Compact) -->
+    <div class="import-export-compact">
+      <div class="import-export-content">
+        <div class="import-export-label">
+          <i class="fas fa-exchange-alt"></i>
+          Backup & Restore
+        </div>
+        <div class="import-export-actions">
+          <button id="export-settings" class="btn-compact btn-export-compact">
+            <i class="fas fa-download"></i> Export
+          </button>
+          <button id="import-settings" class="btn-compact btn-import-compact">
+            <i class="fas fa-upload"></i> Import
+          </button>
+          <input type="file" id="import-file" accept=".json">
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="lib/bootstrap.bundle.min.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

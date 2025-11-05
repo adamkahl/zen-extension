@@ -1,0 +1,331 @@
+:root {
+  --zen-primary: #6366f1;
+  --zen-primary-dark: #4f46e5;
+  --zen-secondary: #8b5cf6;
+  --zen-accent: #ec4899;
+  --zen-bg: #f8f9fa;
+  --zen-card-bg: #ffffff;
+  --zen-text: #1f2937;
+  --zen-text-muted: #6b7280;
+  --zen-border: #e5e7eb;
+  --zen-success: #10b981;
+}
+
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 2rem 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+}
+
+.container {
+  max-width: 900px;
+}
+
+.card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.card-header {
+  background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-secondary) 100%);
+  color: white;
+  padding: 2rem;
+  border: none;
+}
+
+.card-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-header p {
+  margin: 0.5rem 0 0 0;
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.card-body {
+  padding: 2rem;
+  background: var(--zen-card-bg);
+}
+
+.pairing-item {
+  background: var(--zen-bg);
+  border: 2px solid var(--zen-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.pairing-item:hover {
+  border-color: var(--zen-primary);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  transform: translateY(-2px);
+}
+
+.pairing-inputs {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+}
+
+.input-group-custom {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.form-control {
+  border: 2px solid var(--zen-border);
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.form-control:focus {
+  border-color: var(--zen-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.emoji-input {
+  font-size: 1rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: var(--zen-text);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.btn-remove {
+  background: transparent;
+  border: 2px solid #ef4444;
+  color: #ef4444;
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  height: fit-content;
+}
+
+.btn-remove:hover {
+  background: #ef4444;
+  color: white;
+  transform: scale(1.05);
+}
+
+.btn-edit:hover {
+  background: var(--zen-primary) !important;
+  color: white !important;
+  transform: scale(1.05);
+}
+
+.btn-add {
+  background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-secondary) 100%);
+  border: none;
+  color: white;
+  border-radius: 10px;
+  padding: 0.875rem 1.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.group-item {
+  transition: all 0.2s ease;
+}
+
+.group-item:hover {
+  background: #e5e7eb !important;
+  transform: translateX(4px);
+}
+
+.group-item.dragging {
+  opacity: 0.4;
+}
+
+.auto-save-indicator {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  background: linear-gradient(135deg, var(--zen-success) 0%, #059669 100%);
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  z-index: 1000;
+  animation: slideInFromRight 0.3s ease;
+}
+
+/* Import/Export Compact Section */
+.import-export-compact {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.import-export-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.import-export-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--zen-text-muted);
+  font-size: 0.9rem;
+}
+
+.import-export-label i {
+  color: var(--zen-primary);
+}
+
+.import-export-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.btn-compact {
+  border: none;
+  color: white;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-export-compact {
+  background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);
+  box-shadow: 0 2px 6px rgba(236, 72, 153, 0.2);
+}
+
+.btn-export-compact:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+}
+
+.btn-import-compact {
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);
+}
+
+.btn-import-compact:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--zen-text-muted);
+}
+
+.empty-state i {
+  font-size: 4rem;
+  color: var(--zen-primary);
+  opacity: 0.3;
+  margin-bottom: 1rem;
+}
+
+.icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#import-file {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pairing-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .input-group-custom {
+    min-width: 100%;
+  }
+  
+  .auto-save-indicator {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .import-export-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .import-export-actions {
+    justify-content: stretch;
+  }
+
+  .btn-compact {
+    flex: 1;
+  }
+}
