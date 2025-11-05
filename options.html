@@ -68,9 +68,38 @@
           <i class="fas fa-link"></i>
           URL Patterns
         </h1>
-        <p>Configure URL patterns and custom tab names for a cleaner browsing experience. Changes are saved automatically.</p>
+        <p>Patterns are checked in order from top to bottom. More specific patterns should be higher. Drag to reorder.</p>
       </div>
       <div class="card-body">
+        <!-- Search bar -->
+        <div style="margin-bottom: 1rem;">
+          <div style="position: relative;">
+            <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+            <input 
+              type="text" 
+              id="pattern-search" 
+              placeholder="Search patterns by URL, name, or group..."
+              style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 2.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem;"
+            />
+          </div>
+        </div>
+
+        <!-- Bulk actions bar -->
+        <div id="bulk-actions-bar" style="display: none; background: #6366f1; color: white; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; align-items: center; justify-content: space-between;">
+          <span class="bulk-count" style="font-weight: 600;"></span>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="bulk-assign-group" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500;">
+              <i class="fas fa-folder"></i> Assign Group
+            </button>
+            <button id="bulk-delete" style="background: rgba(239,68,68,0.9); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500;">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+            <button id="bulk-deselect" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500;">
+              <i class="fas fa-times"></i> Deselect
+            </button>
+          </div>
+        </div>
+
         <div id="pairings-container"></div>
         
         <div style="margin-top: 2rem;">
