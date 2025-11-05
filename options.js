@@ -29,9 +29,11 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [])
   const div = document.createElement('div');
   div.className = 'pairing-item';
   
-  const groupOptions = groups.map(g => 
-    `<option value="${escapeHtml(g.name)}" ${group === g.name ? 'selected' : ''}>${escapeHtml(g.name)}</option>`
-  ).join('');
+  // Normalize groups for the dropdown
+  const groupOptions = groups.map(g => {
+    const groupName = typeof g === 'string' ? g : g.name;
+    return `<option value="${escapeHtml(groupName)}" ${group === groupName ? 'selected' : ''}>${escapeHtml(groupName)}</option>`;
+  }).join('');
   
   div.innerHTML = `
     <div class="pairing-inputs">
