@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Zen Tidy Up",
+  "version": "1.1.0",
+  "description": "Organize and rename browser tabs by URL patterns with custom groups and categories for a cleaner browsing experience.",
+  "homepage_url": "https://github.com/adamkahl/zen-extension",
+  "author": "Adam Kahl",
+  "permissions": [
+    "tabs",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Tidy Tabs",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    }
+  },
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}

@@ -1,4 +1,7 @@
-// Minimal click-to-tidy: rename tabs using saved pairings and organize by groups
+// Chrome compatibility layer
+if (typeof browser === 'undefined') {
+  var browser = chrome;
+}
 
 // Store original tab titles to prevent duplicate emoji prepending
 const originalTitles = new Map();
@@ -80,6 +83,28 @@ function getOriginalTitle(tab) {
   // First time seeing this tab - store its current title as original
   originalTitles.set(tab.id, tab.title);
   return tab.title;
+}
+
+// Rename a tab - handles both Chrome and Firefox
+async function renameTab(tabId, title) {
+  try {
+    // Chrome MV3 uses chrome.scripting.executeScript
+    if (typeof chrome !== 'undefined' && chrome.scripting) {
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: (newTitle) => { document.title = newTitle; },
+        args: [title]
+      });
+    } else {
+      // Firefox uses browser.tabs.executeScript
+      await browser.tabs.executeScript(tabId, {
+        code: `document.title = ${JSON.stringify(title)};`
+      });
+    }
+  } catch (error) {
+    // Silently fail for tabs we can't access (chrome://, about:, etc.)
+    console.debug(`Could not rename tab ${tabId}:`, error.message);
+  }
 }
 
 // Update stored original title when tab URL or title changes naturally
@@ -208,10 +233,7 @@ async function tidy() {
   await Promise.allSettled(
     tabsWithGroups.map(({ tab, shouldRename, displayTitle }) => {
       if (!shouldRename) return Promise.resolve();
-      
-      return browser.tabs.executeScript(tab.id, {
-        code: `document.title = ${JSON.stringify(displayTitle)};`
-      }).catch(() => {});
+      return renameTab(tab.id, displayTitle);
     })
   );
 
@@ -241,22 +263,9 @@ browser.tabs.onCreated.addListener(() => {
   maybeAutoTidy();
 });
 
-browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  // If title changed and doesn't have emoji prefix, update stored original
-  if (changeInfo.title) {
-    const hasEmojiPrefix = /^[\p{Emoji}\s]+/u.test(changeInfo.title);
-    if (!hasEmojiPrefix) {
-      originalTitles.set(tabId, changeInfo.title);
-    }
-  }
-  
-  // Only trigger auto-tidy on URL or title changes
-  if (changeInfo.url || changeInfo.title) {
-    maybeAutoTidy();
-  }
-});
-
 // Toolbar button click handler
-browser.browserAction.onClicked.addListener(() => {
+// Chrome uses browser.action, Firefox uses browser.browserAction
+const action = browser.action || browser.browserAction;
+action.onClicked.addListener(() => {
   tidy();
 });

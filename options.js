@@ -1,3 +1,8 @@
+// Chrome compatibility layer
+if (typeof browser === 'undefined') {
+  var browser = chrome;
+}
+
 // Load saved pairings and groups
 async function loadPairings() {
   const result = await browser.storage.local.get({ pairings: [], groups: [] });
@@ -561,13 +566,14 @@ function showStatus(message = 'Saved') {
 }
 
 async function exportSettings() {
-  const data = await browser.storage.local.get({ pairings: [], groups: [] });
+  const data = await browser.storage.local.get({ pairings: [], groups: [], autoTidyEnabled: false });
   
   const exportData = {
     version: '1.1',
     exportDate: new Date().toISOString(),
     pairings: data.pairings,
-    groups: data.groups
+    groups: data.groups,
+    autoTidyEnabled: data.autoTidyEnabled
   };
   
   const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -601,11 +607,13 @@ async function importSettings(file) {
     
     await browser.storage.local.set({
       pairings: importData.pairings,
-      groups: importData.groups
+      groups: importData.groups,
+      autoTidyEnabled: importData.autoTidyEnabled ?? false
     });
     
     await loadGroups();
     await loadPairings();
+    await loadSettings();
     
     showStatus('Settings imported successfully');
   } catch (error) {
@@ -634,12 +642,14 @@ document.getElementById('add-pairing').addEventListener('click', async () => {
 document.getElementById('add-group').addEventListener('click', addGroup);
 document.getElementById('export-settings').addEventListener('click', exportSettings);
 document.getElementById('import-settings').addEventListener('click', () => {
-  document.getElementById('import-file').click();
+  const fileInput = document.getElementById('import-file');
+  // Reset the input to allow re-importing the same file
+  fileInput.value = '';
+  fileInput.click();
 });
 document.getElementById('import-file').addEventListener('change', (e) => {
   if (e.target.files.length > 0) {
     importSettings(e.target.files[0]);
-    e.target.value = '';
   }
 });
 
