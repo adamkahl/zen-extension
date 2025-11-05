@@ -1,5 +1,11 @@
 // Minimal click-to-tidy: rename tabs using saved pairings and organize by groups
 
+// Store original tab titles to prevent duplicate emoji prepending
+const originalTitles = new Map();
+
+// Debounce timer for auto-tidy
+let autoTidyTimeout = null;
+
 // Find a pairing for a URL
 function findPairing(pairings, url) {
   return pairings.find(p => p.url && url && url.includes(p.url));
@@ -13,6 +19,89 @@ function findGroup(groups, groupName) {
     return name === groupName;
   });
 }
+
+// Calculate match score for a tab against a group's keywords
+function calculateMatchScore(tab, keywords) {
+  if (!keywords || keywords.length === 0) return 0;
+  
+  const searchText = `${tab.url} ${tab.title}`.toLowerCase();
+  let score = 0;
+  
+  keywords.forEach(keyword => {
+    const lowerKeyword = keyword.toLowerCase();
+    if (searchText.includes(lowerKeyword)) {
+      // Give more weight to exact matches and matches in URL
+      const urlMatches = (tab.url.toLowerCase().match(new RegExp(lowerKeyword, 'g')) || []).length;
+      const titleMatches = (tab.title.toLowerCase().match(new RegExp(lowerKeyword, 'g')) || []).length;
+      score += (urlMatches * 2) + titleMatches; // URL matches count double
+    }
+  });
+  
+  return score;
+}
+
+// Find best matching group for a tab based on keywords
+function findBestMatchingGroup(groups, tab) {
+  let bestMatch = null;
+  let bestScore = 0;
+  
+  groups.forEach(group => {
+    if (typeof group === 'string') return; // Skip old format groups
+    
+    const keywords = group.keywords || [];
+    if (keywords.length === 0) return; // Skip groups without keywords
+    
+    const score = calculateMatchScore(tab, keywords);
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = group;
+    }
+  });
+  
+  return bestMatch;
+}
+
+// Get or store the original title for a tab
+function getOriginalTitle(tab) {
+  const stored = originalTitles.get(tab.id);
+  
+  // If we have a stored title, check if the current title looks modified (has emojis)
+  if (stored) {
+    // If current title doesn't start with emoji characters, update the stored original
+    // This handles cases where the page changed its title naturally
+    const hasEmojiPrefix = /^[\p{Emoji}\s]+/u.test(tab.title);
+    if (!hasEmojiPrefix) {
+      originalTitles.set(tab.id, tab.title);
+      return tab.title;
+    }
+    return stored;
+  }
+  
+  // First time seeing this tab - store its current title as original
+  originalTitles.set(tab.id, tab.title);
+  return tab.title;
+}
+
+// Update stored original title when tab URL or title changes naturally
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // If title changed and doesn't have emoji prefix, update stored original
+  if (changeInfo.title) {
+    const hasEmojiPrefix = /^[\p{Emoji}\s]+/u.test(changeInfo.title);
+    if (!hasEmojiPrefix) {
+      originalTitles.set(tabId, changeInfo.title);
+    }
+  }
+  
+  // Only trigger auto-tidy on URL or title changes
+  if (changeInfo.url || changeInfo.title) {
+    maybeAutoTidy();
+  }
+});
+
+// Clean up stored titles for closed tabs
+browser.tabs.onRemoved.addListener((tabId) => {
+  originalTitles.delete(tabId);
+});
 
 // Main action: rename tabs based on pairings and organize by groups
 async function tidy() {
@@ -44,31 +133,51 @@ async function tidy() {
   // Associate tabs with their pairings and groups
   const tabsWithGroups = unpinnedTabs.map(tab => {
     const pairing = findPairing(pairings, tab.url);
-    const groupName = pairing?.group || '';
-    const group = findGroup(groups, groupName);
+    let groupName = pairing?.group || '';
+    let group = findGroup(groups, groupName);
     
-    // Only rename if pairing has a name, otherwise keep original title
-    const shouldRename = pairing && pairing.name && pairing.name.trim();
+    // If no explicit group from pairing, try keyword matching
+    if (!groupName) {
+      const matchedGroup = findBestMatchingGroup(groups, tab);
+      if (matchedGroup) {
+        group = matchedGroup;
+        groupName = matchedGroup.name;
+      }
+    }
     
-    let displayTitle = tab.title;
-    if (shouldRename) {
-      // Build title with group category, color emoji, and name
-      const parts = [];
-      
-      // Add group category if group exists
-      if (group && typeof group === 'object' && group.category) {
-        parts.push(group.category);
+    const hasPairingName = pairing && pairing.name && pairing.name.trim();
+    const hasGroupCategory = group && typeof group === 'object' && group.category;
+
+    // Determine if the title should be modified at all
+    const shouldModifyTitle = hasPairingName || hasGroupCategory;
+    
+    // Always use the original title as the base
+    const originalTitle = getOriginalTitle(tab);
+    let displayTitle = originalTitle;
+
+    if (shouldModifyTitle) {
+      const titleParts = [];
+
+      // 1. Add group category emoji if it exists
+      if (hasGroupCategory) {
+        titleParts.push(group.category);
+      }
+
+      // 2. Add color emoji from pairing if it exists
+      if (pairing && pairing.emoji) {
+        titleParts.push(pairing.emoji);
+      }
+
+      // 3. Add the main title part
+      if (hasPairingName) {
+        // Use the custom name from the pairing
+        titleParts.push(pairing.name);
+      } else {
+        // Use the tab's original title
+        titleParts.push(originalTitle);
       }
       
-      // Add color emoji from pairing
-      if (pairing.emoji) {
-        parts.push(pairing.emoji);
-      }
-      
-      // Add the name
-      parts.push(pairing.name);
-      
-      displayTitle = parts.join(' ');
+      displayTitle = titleParts.join(' ');
     }
     
     // Get group order (ungrouped tabs go to end)
@@ -80,7 +189,7 @@ async function tidy() {
       group: groupName,
       displayTitle,
       groupOrder,
-      shouldRename
+      shouldRename: shouldModifyTitle
     };
   });
 
@@ -110,6 +219,42 @@ async function tidy() {
   const tabIds = tabsWithGroups.map(({ tab }) => tab.id);
   await browser.tabs.move(tabIds, { index: firstUnpinnedIndex });
 }
+
+// Debounced auto-tidy to prevent excessive operations
+function scheduleAutoTidy() {
+  clearTimeout(autoTidyTimeout);
+  autoTidyTimeout = setTimeout(() => {
+    tidy();
+  }, 1000); // Wait 1 second after last tab change
+}
+
+// Check if auto-tidy is enabled and trigger if so
+async function maybeAutoTidy() {
+  const { autoTidyEnabled } = await browser.storage.local.get({ autoTidyEnabled: false });
+  if (autoTidyEnabled) {
+    scheduleAutoTidy();
+  }
+}
+
+// Listen for tab events
+browser.tabs.onCreated.addListener(() => {
+  maybeAutoTidy();
+});
+
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // If title changed and doesn't have emoji prefix, update stored original
+  if (changeInfo.title) {
+    const hasEmojiPrefix = /^[\p{Emoji}\s]+/u.test(changeInfo.title);
+    if (!hasEmojiPrefix) {
+      originalTitles.set(tabId, changeInfo.title);
+    }
+  }
+  
+  // Only trigger auto-tidy on URL or title changes
+  if (changeInfo.url || changeInfo.title) {
+    maybeAutoTidy();
+  }
+});
 
 // Toolbar button click handler
 browser.browserAction.onClicked.addListener(() => {

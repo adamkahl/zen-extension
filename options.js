@@ -14,13 +14,19 @@ async function loadPairings() {
   }
 }
 
+// Load settings
+async function loadSettings() {
+  const { autoTidyEnabled } = await browser.storage.local.get({ autoTidyEnabled: false });
+  document.getElementById('auto-tidy-toggle').checked = autoTidyEnabled;
+}
+
 // Debounce function to prevent excessive saves
 let saveTimeout = null;
 function debouncedSave() {
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
     savePairings();
-  }, 500); // Wait 500ms after last change before saving
+  }, 500);
 }
 
 // Add a new pairing row to the form
@@ -29,7 +35,6 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [])
   const div = document.createElement('div');
   div.className = 'pairing-item';
   
-  // Normalize groups for the dropdown
   const groupOptions = groups.map(g => {
     const groupName = typeof g === 'string' ? g : g.name;
     return `<option value="${escapeHtml(groupName)}" ${group === groupName ? 'selected' : ''}>${escapeHtml(groupName)}</option>`;
@@ -90,7 +95,6 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [])
     </div>
   `;
   
-  // Add auto-save listeners to all inputs
   div.querySelector('.url-input').addEventListener('input', debouncedSave);
   div.querySelector('.name-input').addEventListener('input', debouncedSave);
   div.querySelector('.emoji-input').addEventListener('change', debouncedSave);
@@ -100,7 +104,7 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [])
     div.style.animation = 'slideOut 0.3s ease';
     setTimeout(() => {
       div.remove();
-      debouncedSave(); // Save after removal
+      debouncedSave();
     }, 300);
   };
   
@@ -123,6 +127,7 @@ async function loadGroups() {
   groups.forEach((group, index) => {
     const groupName = typeof group === 'string' ? group : group.name;
     const groupCategory = typeof group === 'object' ? group.category : '';
+    const keywordCount = typeof group === 'object' && group.keywords ? group.keywords.length : 0;
     
     const div = document.createElement('div');
     div.className = 'group-item';
@@ -134,6 +139,7 @@ async function loadGroups() {
       <i class="fas fa-grip-vertical" style="color: #9ca3af; cursor: grab;"></i>
       <span style="font-size: 1.25rem;">${groupCategory || '📁'}</span>
       <span class="group-name" style="flex: 1; font-weight: 500; cursor: pointer;">${escapeHtml(groupName)}</span>
+      ${keywordCount > 0 ? `<span style="background: #6366f1; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">${keywordCount} keyword${keywordCount !== 1 ? 's' : ''}</span>` : ''}
       <button class="btn btn-sm btn-edit" type="button" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; background: transparent; border: 2px solid #6366f1; color: #6366f1; border-radius: 6px; transition: all 0.3s ease;">
         <i class="fas fa-edit"></i>
       </button>
@@ -142,19 +148,16 @@ async function loadGroups() {
       </button>
     `;
     
-    // Edit button handler
     const editBtn = div.querySelector('.btn-edit');
     const groupNameSpan = div.querySelector('.group-name');
     
     const editGroup = async () => {
-      // Create modal for editing
-      showGroupEditModal(groupName, groupCategory, false);
+      showGroupEditModal(groupName, groupCategory, typeof group === 'object' ? group.keywords : [], false);
     };
     
     editBtn.onclick = editGroup;
     groupNameSpan.onclick = editGroup;
     
-    // Remove button handler
     div.querySelector('.btn-remove').onclick = async () => {
       if (confirm(`Delete group "${groupName}"? Pairings in this group will not be deleted.`)) {
         const result = await browser.storage.local.get({ groups: [] });
@@ -166,7 +169,6 @@ async function loadGroups() {
       }
     };
     
-    // Drag and drop handlers
     div.addEventListener('dragstart', handleDragStart);
     div.addEventListener('dragover', handleDragOver);
     div.addEventListener('drop', handleDrop);
@@ -177,7 +179,7 @@ async function loadGroups() {
 }
 
 // Show group edit modal
-function showGroupEditModal(currentName, currentCategory, isAdding) {
+function showGroupEditModal(currentName, currentCategory, currentKeywords = [], isAdding) {
   const modal = document.createElement('div');
   modal.style.cssText = `
     position: fixed;
@@ -193,13 +195,19 @@ function showGroupEditModal(currentName, currentCategory, isAdding) {
     padding: 2rem;
   `;
   
+  const keywordsHtml = currentKeywords.map(kw => 
+    `<span class="keyword-tag">${escapeHtml(kw)}<button class="keyword-remove" data-keyword="${escapeHtml(kw)}">×</button></span>`
+  ).join('');
+  
   modal.innerHTML = `
     <div style="
       background: white;
       border-radius: 16px;
       padding: 2rem;
-      max-width: 500px;
+      max-width: 600px;
       width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     ">
       <h2 style="margin: 0 0 1.5rem 0; color: #1f2937; font-size: 1.5rem;">
@@ -224,7 +232,7 @@ function showGroupEditModal(currentName, currentCategory, isAdding) {
         />
       </div>
       
-      <div style="margin-bottom: 1.5rem;">
+      <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #4b5563;">
           Category Icon
         </label>
@@ -240,6 +248,11 @@ function showGroupEditModal(currentName, currentCategory, isAdding) {
         >
           <option value="">None</option>
           <option value="💼" ${currentCategory === '💼' ? 'selected' : ''}>💼 Work</option>
+          <option value="📋" ${currentCategory === '📋' ? 'selected' : ''}>📋 Project Management</option>
+          <option value="💬" ${currentCategory === '💬' ? 'selected' : ''}>💬 Communication</option>
+          <option value="💻" ${currentCategory === '💻' ? 'selected' : ''}>💻 Development & Code</option>
+          <option value="📖" ${currentCategory === '📖' ? 'selected' : ''}>📖 Documentation</option>
+          <option value="🐞" ${currentCategory === '🐞' ? 'selected' : ''}>🐞 Debugging & Q&A</option>
           <option value="🎮" ${currentCategory === '🎮' ? 'selected' : ''}>🎮 Gaming</option>
           <option value="🛒" ${currentCategory === '🛒' ? 'selected' : ''}>🛒 Shopping</option>
           <option value="📰" ${currentCategory === '📰' ? 'selected' : ''}>📰 News</option>
@@ -247,15 +260,56 @@ function showGroupEditModal(currentName, currentCategory, isAdding) {
           <option value="🎬" ${currentCategory === '🎬' ? 'selected' : ''}>🎬 Video</option>
           <option value="📚" ${currentCategory === '📚' ? 'selected' : ''}>📚 Reading</option>
           <option value="🔧" ${currentCategory === '🔧' ? 'selected' : ''}>🔧 Tools</option>
-          <option value="💬" ${currentCategory === '💬' ? 'selected' : ''}>💬 Social</option>
-          <option value="📧" ${currentCategory === '📧' ? 'selected' : ''}>📧 Email</option>
           <option value="🎓" ${currentCategory === '🎓' ? 'selected' : ''}>🎓 Education</option>
           <option value="🏥" ${currentCategory === '🏥' ? 'selected' : ''}>🏥 Health</option>
           <option value="💰" ${currentCategory === '💰' ? 'selected' : ''}>💰 Finance</option>
           <option value="🎨" ${currentCategory === '🎨' ? 'selected' : ''}>🎨 Design</option>
           <option value="⚙️" ${currentCategory === '⚙️' ? 'selected' : ''}>⚙️ Settings</option>
-          <option value="🖥️" ${currentCategory === '🖥️' ? 'selected' : ''}>🖥️ Development</option>
+          <option value="🖥️" ${currentCategory === '🖥️' ? 'selected' : ''}>🖥️ Apps</option>
         </select>
+      </div>
+      
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #4b5563;">
+          Keywords for Auto-Matching
+          <span style="font-weight: normal; font-size: 0.875rem; color: #6b7280;">(optional)</span>
+        </label>
+        <p style="margin: 0 0 0.5rem 0; font-size: 0.875rem; color: #6b7280;">
+          Tabs matching these keywords will automatically be grouped. Matches in URLs are weighted higher.
+        </p>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <input 
+            type="text" 
+            id="modal-keyword-input" 
+            placeholder="e.g., github.com, pull request"
+            style="
+              flex: 1;
+              padding: 0.5rem;
+              border: 2px solid #e5e7eb;
+              border-radius: 6px;
+              font-size: 0.95rem;
+            "
+          />
+          <button id="modal-add-keyword" style="
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+          ">
+            Add
+          </button>
+        </div>
+        <div id="modal-keywords-container" style="
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          min-height: 2rem;
+        ">
+          ${keywordsHtml}
+        </div>
       </div>
       
       <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
@@ -287,21 +341,60 @@ function showGroupEditModal(currentName, currentCategory, isAdding) {
   
   document.body.appendChild(modal);
   
-  // Focus the name input
+  // Keyword management
+  const keywordInput = modal.querySelector('#modal-keyword-input');
+  const keywordsContainer = modal.querySelector('#modal-keywords-container');
+  
+  const addKeyword = () => {
+    const keyword = keywordInput.value.trim();
+    if (!keyword) return;
+    
+    // Check for duplicates
+    const existingKeywords = Array.from(keywordsContainer.querySelectorAll('.keyword-tag'))
+      .map(tag => tag.textContent.replace('×', '').trim());
+    
+    if (existingKeywords.includes(keyword)) {
+      keywordInput.value = '';
+      return;
+    }
+    
+    const tag = document.createElement('span');
+    tag.className = 'keyword-tag';
+    tag.innerHTML = `${escapeHtml(keyword)}<button class="keyword-remove" data-keyword="${escapeHtml(keyword)}">×</button>`;
+    keywordsContainer.appendChild(tag);
+    
+    tag.querySelector('.keyword-remove').onclick = () => tag.remove();
+    
+    keywordInput.value = '';
+  };
+  
+  modal.querySelector('#modal-add-keyword').onclick = addKeyword;
+  keywordInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addKeyword();
+    }
+  });
+  
+  // Remove existing keywords
+  keywordsContainer.querySelectorAll('.keyword-remove').forEach(btn => {
+    btn.onclick = () => btn.closest('.keyword-tag').remove();
+  });
+  
   setTimeout(() => {
     document.getElementById('modal-group-name').focus();
     document.getElementById('modal-group-name').select();
   }, 100);
   
-  // Cancel button
   modal.querySelector('#modal-cancel-btn').onclick = () => {
     modal.remove();
   };
   
-  // Save button
   modal.querySelector('#modal-save-btn').onclick = async () => {
     const newName = document.getElementById('modal-group-name').value.trim();
     const newCategory = document.getElementById('modal-group-category').value;
+    const keywords = Array.from(keywordsContainer.querySelectorAll('.keyword-tag'))
+      .map(tag => tag.textContent.replace('×', '').trim());
     
     if (!newName) {
       alert('Group name cannot be empty!');
@@ -312,23 +405,22 @@ function showGroupEditModal(currentName, currentCategory, isAdding) {
     const groups = result.groups;
     const pairings = result.pairings;
     
-    // Normalize groups to objects
     const normalizedGroups = groups.map(g => 
-      typeof g === 'string' ? { name: g, category: '' } : g
+      typeof g === 'string' ? { name: g, category: '', keywords: [] } : g
     );
     
-    // Check if new name already exists
-    const nameExists = normalizedGroups.some(g => g.name === newName);
-    if (nameExists && (!isAdding || newName !== currentName)) {
+    const nameExistsInAnotherGroup = normalizedGroups.some(g => {
+      return g.name === newName && (isAdding || g.name !== currentName);
+    });
+
+    if (nameExistsInAnotherGroup) {
       alert('A group with that name already exists!');
       return;
     }
     
     if (isAdding) {
-      // Adding a new group
-      normalizedGroups.push({ name: newName, category: newCategory });
+      normalizedGroups.push({ name: newName, category: newCategory, keywords });
     } else {
-      // Updating existing group
       const groupIndex = normalizedGroups.findIndex(g => g.name === currentName);
       if (groupIndex === -1) {
         alert('Group not found. It may have been deleted.');
@@ -337,11 +429,8 @@ function showGroupEditModal(currentName, currentCategory, isAdding) {
       }
       
       const oldName = normalizedGroups[groupIndex].name;
+      normalizedGroups[groupIndex] = { name: newName, category: newCategory, keywords };
       
-      // Update the group
-      normalizedGroups[groupIndex] = { name: newName, category: newCategory };
-      
-      // Update all pairings that use this group
       if (oldName !== newName) {
         pairings.forEach(pairing => {
           if (pairing.group === oldName) {
@@ -358,14 +447,12 @@ function showGroupEditModal(currentName, currentCategory, isAdding) {
     modal.remove();
   };
   
-  // Close on background click
   modal.onclick = (e) => {
     if (e.target === modal) {
       modal.remove();
     }
   };
   
-  // Close on Escape key
   const escapeHandler = (e) => {
     if (e.key === 'Escape') {
       modal.remove();
@@ -419,7 +506,6 @@ function handleDrop(e) {
 function handleDragEnd(e) {
   this.style.opacity = '1';
   
-  // Remove all border highlights
   document.querySelectorAll('.group-item').forEach(item => {
     item.style.borderTop = '';
   });
@@ -431,10 +517,7 @@ async function reorderGroups(fromIndex, toIndex) {
   const result = await browser.storage.local.get({ groups: [] });
   const groups = result.groups;
   
-  // Remove the item from the old position
   const [movedGroup] = groups.splice(fromIndex, 1);
-  
-  // Insert it at the new position
   groups.splice(toIndex, 0, movedGroup);
   
   await browser.storage.local.set({ groups });
@@ -443,12 +526,10 @@ async function reorderGroups(fromIndex, toIndex) {
   showStatus('Groups reordered');
 }
 
-// Add a new group
 async function addGroup() {
-  showGroupEditModal('', '', true);
+  showGroupEditModal('', '', [], true);
 }
 
-// Save pairings to storage
 async function savePairings() {
   const pairingDivs = document.querySelectorAll('.pairing-item');
   const pairings = [];
@@ -459,7 +540,6 @@ async function savePairings() {
     const emoji = div.querySelector('.emoji-input').value.trim();
     const group = div.querySelector('.group-input').value.trim();
     
-    // Save if URL is provided (name is now optional)
     if (url) {
       pairings.push({ url, name, emoji, group });
     }
@@ -469,7 +549,6 @@ async function savePairings() {
   showStatus('Saved');
 }
 
-// Show status message
 function showStatus(message = 'Saved') {
   const status = document.getElementById('status');
   status.querySelector('span').textContent = message;
@@ -481,12 +560,11 @@ function showStatus(message = 'Saved') {
   }, 2000);
 }
 
-// Export settings to JSON file
 async function exportSettings() {
   const data = await browser.storage.local.get({ pairings: [], groups: [] });
   
   const exportData = {
-    version: '1.0',
+    version: '1.1',
     exportDate: new Date().toISOString(),
     pairings: data.pairings,
     groups: data.groups
@@ -504,13 +582,11 @@ async function exportSettings() {
   showStatus('Settings exported');
 }
 
-// Import settings from JSON file
 async function importSettings(file) {
   try {
     const text = await file.text();
     const importData = JSON.parse(text);
     
-    // Validate the structure
     if (!importData.pairings || !Array.isArray(importData.pairings)) {
       throw new Error('Invalid settings file: missing or invalid pairings');
     }
@@ -519,18 +595,15 @@ async function importSettings(file) {
       throw new Error('Invalid settings file: missing or invalid groups');
     }
     
-    // Confirm before overwriting
     if (!confirm('This will replace all current settings. Continue?')) {
       return;
     }
     
-    // Save imported data
     await browser.storage.local.set({
       pairings: importData.pairings,
       groups: importData.groups
     });
     
-    // Reload the UI
     await loadGroups();
     await loadPairings();
     
@@ -540,18 +613,22 @@ async function importSettings(file) {
   }
 }
 
-// Escape HTML to prevent XSS
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 }
 
-// Event listeners
+// Auto-tidy toggle handler
+document.getElementById('auto-tidy-toggle').addEventListener('change', async (e) => {
+  const autoTidyEnabled = e.target.checked;
+  await browser.storage.local.set({ autoTidyEnabled });
+  showStatus(autoTidyEnabled ? 'Auto-tidy enabled' : 'Auto-tidy disabled');
+});
+
 document.getElementById('add-pairing').addEventListener('click', async () => {
   const result = await browser.storage.local.get({ groups: [] });
   addPairingRow('', '', '', '', result.groups);
-  // Don't auto-save empty rows
 });
 
 document.getElementById('add-group').addEventListener('click', addGroup);
@@ -562,15 +639,14 @@ document.getElementById('import-settings').addEventListener('click', () => {
 document.getElementById('import-file').addEventListener('change', (e) => {
   if (e.target.files.length > 0) {
     importSettings(e.target.files[0]);
-    e.target.value = ''; // Reset file input
+    e.target.value = '';
   }
 });
 
-// Load pairings and groups on page load
 loadPairings();
 loadGroups();
+loadSettings();
 
-// Add slide out animation
 const style = document.createElement('style');
 style.textContent = `
   @keyframes slideOut {
@@ -578,6 +654,34 @@ style.textContent = `
       opacity: 0;
       transform: translateX(20px);
     }
+  }
+  
+  .keyword-tag {
+    display: inline-flex;
+    align-items: center;
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    gap: 0.25rem;
+  }
+  
+  .keyword-remove {
+    background: none;
+    border: none;
+    color: #4338ca;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0;
+    margin-left: 0.25rem;
+    font-weight: bold;
+  }
+  
+  .keyword-remove:hover {
+    color: #ef4444;
   }
 `;
 document.head.appendChild(style);
