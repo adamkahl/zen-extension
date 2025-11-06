@@ -1,6 +1,6 @@
-# Zen Tidy Up
+# Tablio
 
-A Firefox extension to organize and rename browser tabs based on URL patterns.
+A browser extension to organize and rename browser tabs based on URL patterns.
 
 ## Features
 

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Zen Tidy Up",
+  "name": "Tablio",
   "version": "1.1.0",
-  "description": "Organize and rename browser tabs by URL patterns with custom groups and categories for a cleaner browsing experience.",
+  "description": "Automatically rename and organize tabs using URL rules, groups, colors, and tags.",
   "homepage_url": "https://github.com/adamkahl/zen-extension",
   "author": "Adam Kahl",
   "permissions": [
@@ -17,7 +17,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Tidy Tabs",
+    "default_title": "Tablio",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
