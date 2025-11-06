@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tablio Options</title>
   <link href="lib/bootstrap.min.css" rel="stylesheet">
-  <link href="lib/fontawesome/css/all.min.css" rel="stylesheet">
+  <link href="lib/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="options.css">
+  <link rel="icon" type="image/png" href="icons/icon48.png">
 </head>
 <body>
   <!-- Auto-save indicator -->
   <div id="status" class="auto-save-indicator">
-    <i class="fas fa-check-circle"></i>
+    <i class="bi bi-check-circle"></i>
     <span>Saved</span>
   </div>
 
@@ -20,7 +21,7 @@
     <div class="card">
       <div class="card-header">
         <h2>
-          <i class="fas fa-cog"></i>
+          <i class="bi bi-gear"></i>
           Settings
         </h2>
         <p>Configure how Tablio behaves</p>
@@ -29,7 +30,7 @@
         <div class="setting-item">
           <div class="setting-info">
             <div class="setting-title">
-              <i class="fas fa-magic"></i>
+              <i class="bi bi-magic"></i>
               Automatic Tidying
             </div>
             <div class="setting-description">
@@ -48,7 +49,7 @@
     <div class="card">
       <div class="card-header">
         <h2>
-          <i class="fas fa-folder"></i>
+          <i class="bi bi-folder"></i>
           Groups
         </h2>
         <p>Create groups to organize your tab renaming rules</p>
@@ -56,7 +57,7 @@
       <div class="card-body">
         <div id="groups-container"></div>
         <button id="add-group" class="btn btn-add mt-3">
-          <i class="fas fa-plus"></i> Add Group
+          <i class="bi bi-plus"></i> Add Group
         </button>
       </div>
     </div>
@@ -65,7 +66,7 @@
     <div class="card">
       <div class="card-header">
         <h1>
-          <i class="fas fa-link"></i>
+          <i class="bi bi-link"></i>
           URL Patterns
         </h1>
         <p>Patterns are checked in order from top to bottom. More specific patterns should be higher. Drag to reorder.</p>
@@ -74,7 +75,7 @@
         <!-- Search bar -->
         <div style="margin-bottom: 1rem;">
           <div style="position: relative;">
-            <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+            <i class="bi bi-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
             <input 
               type="text" 
               id="pattern-search" 
@@ -89,13 +90,13 @@
           <span class="bulk-count" style="font-weight: 600;"></span>
           <div style="display: flex; gap: 0.5rem;">
             <button id="bulk-assign-group" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500;">
-              <i class="fas fa-folder"></i> Assign Group
+              <i class="bi bi-folder"></i> Assign Group
             </button>
             <button id="bulk-delete" style="background: rgba(239,68,68,0.9); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500;">
-              <i class="fas fa-trash"></i> Delete
+              <i class="bi bi-trash"></i> Delete
             </button>
             <button id="bulk-deselect" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500;">
-              <i class="fas fa-times"></i> Deselect
+              <i class="bi bi-x"></i> Deselect
             </button>
           </div>
         </div>
@@ -104,7 +105,7 @@
         
         <div style="margin-top: 2rem;">
           <button id="add-pairing" class="btn btn-add">
-            <i class="fas fa-plus"></i> Add Pairing
+            <i class="bi bi-plus"></i> Add Pairing
           </button>
         </div>
       </div>
@@ -114,15 +115,15 @@
     <div class="import-export-compact">
       <div class="import-export-content">
         <div class="import-export-label">
-          <i class="fas fa-exchange-alt"></i>
+          <i class="bi bi-arrow-left-right"></i>
           Backup & Restore
         </div>
         <div class="import-export-actions">
           <button id="export-settings" class="btn-compact btn-export-compact">
-            <i class="fas fa-download"></i> Export
+            <i class="bi bi-download"></i> Export
           </button>
           <button id="import-settings" class="btn-compact btn-import-compact">
-            <i class="fas fa-upload"></i> Import
+            <i class="bi bi-upload"></i> Import
           </button>
           <button id="load-defaults" class="btn-compact" style="background: linear-gradient(135deg,#10b981 0%,#059669 100%); box-shadow: 0 2px 6px rgba(16,185,129,0.15);">
             <i class="fas fa-rocket"></i> Load Defaults

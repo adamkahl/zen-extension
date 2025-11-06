@@ -95,7 +95,7 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
   div.innerHTML = `
     <div class="pairing-header" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;background:${isSelected ? '#e0e7ff' : '#f8f9fa'};border-radius:8px;padding:0.375rem 0.5rem;border:2px solid ${isSelected ? '#6366f1' : 'transparent'};transition:all .2s;min-height:34px;">
       <input type="checkbox" class="pairing-checkbox" ${isSelected ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px;">
-      <i class="fas fa-grip-vertical" style="color:#9ca3af;cursor:grab;"></i>
+      <i class="bi bi-grip-vertical" style="color:#9ca3af;cursor:grab;"></i>
       <div class="pairing-summary" style="flex:1;min-width:0;display:flex;gap:.5rem;align-items:center;font-size:.9rem;">
         ${emoji ? `<span style="font-size:1rem;line-height:1;">${emoji}</span>` : ''}
         <code style="font-family:'Courier New',monospace;color:#6366f1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(url) || 'New Pattern'}</code>
@@ -103,26 +103,26 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
         ${group ? `<span style="margin-left:auto;background:#e0e7ff;color:#4338ca;padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600;white-space:nowrap;">${escapeHtml(group)}</span>` : ''}
       </div>
       <button class="btn-expand" type="button" title="${isExpanded ? 'Collapse' : 'Expand'}" style="background:none;border:none;color:#6b7280;cursor:pointer;padding:0.125rem 0.25rem;">
-        <i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}"></i>
+        <i class="bi bi-chevron-${isExpanded ? 'up' : 'down'}"></i>
       </button>
     </div>
     <div class="pairing-details" style="display:${isExpanded ? 'block' : 'none'};">
       <div class="pairing-inputs pairing-inputs-compact">
         <div class="input-group-custom">
           <label class="form-label form-label-compact">
-            <span class="icon-label"><i class="fas fa-link"></i> URL</span>
+            <span class="icon-label"><i class="bi bi-link"></i> URL</span>
           </label>
           <input type="text" class="form-control form-control-compact url-input" placeholder="github.com" value="${escapeHtml(url)}">
         </div>
         <div class="input-group-custom">
           <label class="form-label form-label-compact">
-            <span class="icon-label"><i class="fas fa-tag"></i> Name</span>
+            <span class="icon-label"><i class="bi bi-tag"></i> Name</span>
           </label>
           <input type="text" class="form-control form-control-compact name-input" placeholder="GitHub" value="${escapeHtml(name)}">
         </div>
         <div class="input-group-custom" style="max-width:150px;">
           <label class="form-label form-label-compact">
-            <span class="icon-label"><i class="fas fa-palette"></i> Color</span>
+            <span class="icon-label"><i class="bi bi-palette"></i> Color</span>
           </label>
           <select class="form-control form-control-compact emoji-input">
             ${colorOptions}
@@ -130,7 +130,7 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
         </div>
         <div class="input-group-custom" style="min-width:180px;">
           <label class="form-label form-label-compact">
-            <span class="icon-label"><i class="fas fa-folder"></i> Group</span>
+            <span class="icon-label"><i class="bi bi-folder"></i> Group</span>
           </label>
           <select class="form-control form-control-compact group-input">
             <option value="">None</option>
@@ -140,7 +140,7 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
         <div class="input-group-custom" style="flex:0 0 auto;min-width:auto;">
           <label class="form-label form-label-compact" style="visibility:hidden;">Remove</label>
           <button class="btn btn-remove btn-remove-compact" type="button" title="Delete">
-            <i class="fas fa-trash"></i>
+            <i class="bi bi-trash"></i>
           </button>
         </div>
       </div>
@@ -167,7 +167,7 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
   const details = div.querySelector('.pairing-details');
   const expandBtn = div.querySelector('.btn-expand');
   const setChevron = (open) => {
-    expandBtn.querySelector('i').className = `fas fa-chevron-${open ? 'up' : 'down'}`;
+    expandBtn.querySelector('i').className = `bi bi-chevron-${open ? 'up' : 'down'}`;
     expandBtn.title = open ? 'Collapse' : 'Expand';
   };
   expandBtn.onclick = (e) => {
@@ -332,15 +332,15 @@ async function loadGroups() {
     div.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; margin-bottom: 0.5rem; cursor: move;';
     
     div.innerHTML = `
-      <i class="fas fa-grip-vertical" style="color: #9ca3af; cursor: grab;"></i>
+      <i class="bi bi-grip-vertical" style="color: #9ca3af; cursor: grab;"></i>
       <span class="group-icon" aria-hidden="true">${groupCategory ? escapeHtml(groupCategory) : ''}</span>
       <span class="group-name" style="flex: 1; font-weight: 500; cursor: pointer;">${escapeHtml(groupName)}</span>
       ${keywordCount > 0 ? `<span style="background: #6366f1; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">${keywordCount} keyword${keywordCount !== 1 ? 's' : ''}</span>` : ''}
       <button class="btn btn-sm btn-edit" type="button" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; background: transparent; border: 2px solid #6366f1; color: #6366f1; border-radius: 6px; transition: all 0.3s ease;">
-        <i class="fas fa-edit"></i>
+        <i class="bi bi-pencil"></i>
       </button>
       <button class="btn btn-sm btn-remove" type="button" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
-        <i class="fas fa-trash"></i>
+        <i class="bi bi-trash"></i>
       </button>
     `;
     
@@ -411,7 +411,7 @@ function showGroupEditModal(currentName, currentCategory, currentKeywords = [], 
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     ">
       <h2 style="margin: 0 0 1.5rem 0; color: #1f2937; font-size: 1.5rem;">
-        <i class="fas fa-${isAdding ? 'plus' : 'edit'}" style="color: #6366f1;"></i> ${isAdding ? 'Add' : 'Edit'} Group
+        <i class="bi bi-${isAdding ? 'plus' : 'edit'}" style="color: #6366f1;"></i> ${isAdding ? 'Add' : 'Edit'} Group
       </h2>
 
       <div style="margin-bottom: 1rem;">
