@@ -96,11 +96,11 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
     <div class="pairing-header" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;background:${isSelected ? '#e0e7ff' : '#f8f9fa'};border-radius:8px;padding:0.375rem 0.5rem;border:2px solid ${isSelected ? '#6366f1' : 'transparent'};transition:all .2s;min-height:34px;">
       <input type="checkbox" class="pairing-checkbox" ${isSelected ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px;">
       <i class="bi bi-grip-vertical" style="color:#9ca3af;cursor:grab;"></i>
-      <div class="pairing-summary" style="flex:1;min-width:0;display:flex;gap:.5rem;align-items:center;font-size:.9rem;">
-        ${emoji ? `<span style="font-size:1rem;line-height:1;">${emoji}</span>` : ''}
-        <code style="font-family:'Courier New',monospace;color:#6366f1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(url) || 'New Pattern'}</code>
-        ${name ? `<span style="color:#9ca3af;">→</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(name)}</span>` : ''}
-        ${group ? `<span style="margin-left:auto;background:#e0e7ff;color:#4338ca;padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600;white-space:nowrap;">${escapeHtml(group)}</span>` : ''}
+      <div class="pairing-summary d-flex align-items-center" style="flex:1;min-width:0;">
+        ${emoji ? `<span class="emoji">${emoji}</span>` : ''}
+        <code>${escapeHtml(url) || 'New Pattern'}</code>
+        ${name ? `<i class="bi bi-chevron-right arrow" aria-hidden="true"></i><span class="name">${escapeHtml(name)}</span>` : ''}
+        ${group ? `<span class="group-badge">${escapeHtml(group)}</span>` : ''}
       </div>
       <button class="btn-expand" type="button" title="${isExpanded ? 'Collapse' : 'Expand'}" style="background:none;border:none;color:#6b7280;cursor:pointer;padding:0.125rem 0.25rem;">
         <i class="bi bi-chevron-${isExpanded ? 'up' : 'down'}"></i>
@@ -190,10 +190,10 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
 
     const summary = div.querySelector('.pairing-summary');
     summary.innerHTML = `
-      ${e ? `<span style="font-size:1rem;line-height:1;">${e}</span>` : ''}
-      <code style="font-family:'Courier New',monospace;color:#6366f1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(u) || 'New Pattern'}</code>
-      ${n ? `<span style="color:#9ca3af;">→</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(n)}</span>` : ''}
-      ${g ? `<span style="margin-left:auto;background:#e0e7ff;color:#4338ca;padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600;white-space:nowrap;">${escapeHtml(g)}</span>` : ''}
+      ${e ? `<span class="emoji">${e}</span>` : ''}
+      <code>${escapeHtml(u) || 'New Pattern'}</code>
+      ${n ? `<i class="bi bi-chevron-right arrow" aria-hidden="true"></i><span class="name">${escapeHtml(n)}</span>` : ''}
+      ${g ? `<span class="group-badge">${escapeHtml(g)}</span>` : ''}
     `;
   };
 
@@ -903,6 +903,51 @@ style.textContent = `
       transform: translateX(20px);
     }
   }
+
+  /* Ensure the summary row centers its children vertically */
+  .pairing-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    min-width: 0;
+    line-height: 1.2; /* normalize */
+  }
+  /* Make text and code boxes themselves center their glyphs */
+  .pairing-summary code,
+  .pairing-summary .name {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2; /* match container */
+  }
+  .pairing-summary .arrow {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1; /* icons sit better with tighter line-height */
+    vertical-align: middle;
+  }
+  .pairing-summary code {
+    font-family: 'Courier New', monospace;
+    color: #6366f1;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pairing-summary .emoji {
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .pairing-summary .group-badge {
+    margin-left: auto;
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: .1rem .4rem;
+    border-radius: 4px;
+    font-size: .7rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
   
   .keyword-tag {
     display: inline-flex;
@@ -915,7 +960,6 @@ style.textContent = `
     font-weight: 500;
     gap: 0.25rem;
   }
-  
   .keyword-remove {
     background: none;
     border: none;
@@ -927,9 +971,24 @@ style.textContent = `
     margin-left: 0.25rem;
     font-weight: bold;
   }
-  
   .keyword-remove:hover {
     color: #ef4444;
+  }
+
+  /* Bordered pill for the name */
+  .pairing-summary .name {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border: 2px solid #c7d2fe;       /* indigo-200 */
+    background: #eef2ff;              /* indigo-50 */
+    color: #1f2937;                   /* slate-800 */
+    border-radius: 9999px;            /* pill shape */
+    font-weight: 600;
+    white-space: nowrap;
+    max-width: 40%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
 document.head.appendChild(style);

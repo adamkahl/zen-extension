@@ -470,6 +470,55 @@ body {
   font-size: 1.25rem;
 }
 
+/* Pairing summary alignment */
+.pairing-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: .9rem;
+  line-height: 1;
+  min-height: 18px;
+}
+
+.pairing-summary > * {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.pairing-summary code {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--zen-primary);
+  line-height: 1;
+}
+
+.pairing-summary .emoji {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.pairing-summary .arrow {
+  color: #9ca3af;
+}
+
+.pairing-summary .group-badge {
+  margin-left: auto;
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: .1rem .4rem;
+  border-radius: 4px;
+  font-size: .7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Ensure icons don’t shift vertically */
+.pairing-header i.bi {
+  display: inline-flex;
+  line-height: 1;
+}
+
 @media (max-width: 768px) {
   .pairing-inputs {
     flex-direction: column;
