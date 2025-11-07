@@ -210,8 +210,15 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
     }, 200);
   };
 
-  // Remove the drag handle event listeners - no longer needed
-  // The entire div is draggable, but we'll prevent drag from non-handle elements
+  // Gate dragging so it only starts when the handle is pressed
+  div._allowDrag = false;
+  const grip = div.querySelector('.bi-grip-vertical');
+  if (grip) {
+    grip.addEventListener('mousedown', () => { div._allowDrag = true; });
+  }
+  // Reset the gate when mouse released or leaves the item
+  div.addEventListener('mouseup', () => { div._allowDrag = false; });
+  div.addEventListener('mouseleave', () => { div._allowDrag = false; });
 
   // Pairing drag and drop handlers
   div.addEventListener('dragstart', handlePairingDragStart);
@@ -232,17 +239,23 @@ function clearPairingDropIndicators() {
 }
 
 function handlePairingDragStart(e) {
-  // Only allow dragging from the handle
-  const isDragHandle = e.target.classList.contains('fa-grip-vertical');
-  
-  if (!isDragHandle) {
+  const item = e.currentTarget; // the .pairing-item
+  // Only allow drag if mousedown originated on the grip icon
+  if (!item._allowDrag) {
     e.preventDefault();
     return;
   }
-  
-  draggedPairing = this;
-  this.style.opacity = '0.4';
-  e.dataTransfer.effectAllowed = 'move';
+  // reset the gate for future drags
+  item._allowDrag = false;
+
+  draggedPairing = item;
+  item.style.opacity = '0.4';
+
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move';
+    // Required for Firefox: must set some data to keep the drag alive
+    try { e.dataTransfer.setData('text/plain', item.dataset.index || ''); } catch (_) {}
+  }
 }
 
 function handlePairingDragOver(e) {
