@@ -105,8 +105,14 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
   const isSelected = index !== null && selectedPairings.has(index);
   const isExpanded = !url;
 
+  // Apply selection styles to pairing-item
+  if (isSelected) {
+    div.style.borderColor = '#6366f1';
+    div.style.background = '#eef2ff';
+  }
+
   div.innerHTML = `
-    <div class="pairing-header" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;background:${isSelected ? '#e0e7ff' : '#f8f9fa'};border-radius:8px;padding:0.375rem 0.5rem;border:2px solid ${isSelected ? '#6366f1' : 'transparent'};transition:all .2s;min-height:34px;">
+    <div class="pairing-header" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;background:transparent;border-radius:8px;padding:0.375rem 0.5rem;transition:all .2s;min-height:34px;">
       <input type="checkbox" class="pairing-checkbox" ${isSelected ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px;">
       <i class="bi bi-grip-vertical" style="color:#9ca3af;cursor:grab;"></i>
       <div class="pairing-summary d-flex align-items-center" style="flex:1;min-width:0;">
@@ -171,8 +177,16 @@ function addPairingRow(url = '', name = '', emoji = '', group = '', groups = [],
       if (checked) selectedPairings.add(idx);
       else selectedPairings.delete(idx);
     }
-    header.style.background = checked ? '#e0e7ff' : '#f8f9fa';
-    header.style.borderColor = checked ? '#6366f1' : 'transparent';
+    
+    // Update styles on pairing-item only
+    if (checked) {
+      div.style.borderColor = '#6366f1';
+      div.style.background = '#eef2ff';
+    } else {
+      div.style.borderColor = '';
+      div.style.background = '';
+    }
+    
     updateBulkActions(selectedPairings);
   };
 
@@ -330,8 +344,9 @@ function handlePairingDragDrop(e, browser) {
       item.dataset.index = idx;
       const cb = item.querySelector('.pairing-checkbox');
       if (cb) cb.checked = false;
-      const hdr = item.querySelector('.pairing-header');
-      if (hdr) { hdr.style.background = '#f8f9fa'; hdr.style.borderColor = 'transparent'; }
+      // Reset pairing-item styles only
+      item.style.borderColor = '';
+      item.style.background = '';
     });
     selectedPairings.clear();
     updateBulkActions(selectedPairings);
