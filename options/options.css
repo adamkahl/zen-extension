@@ -540,6 +540,35 @@ body {
   line-height: 1;
 }
 
+/* Keyword tag styles */
+.keyword-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  gap: 0.25rem;
+}
+
+.keyword-remove {
+  background: none;
+  border: none;
+  color: #4338ca;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0;
+  margin-left: 0.25rem;
+  font-weight: bold;
+}
+
+.keyword-remove:hover {
+  color: #ef4444;
+}
+
 @media (max-width: 768px) {
   .pairing-inputs {
     flex-direction: column;
