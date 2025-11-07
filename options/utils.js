@@ -73,6 +73,34 @@ export async function exportSettings(browser) {
 }
 
 /**
+ * Load recommended defaults from config file
+ */
+export async function loadRecommendedDefaults(browser, loadGroups, loadPairings, loadSettings) {
+  try {
+    const resp = await fetch('../default-config.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const importData = await resp.json();
+
+    if (!confirm('This will replace all current settings with the recommended defaults. Continue?')) {
+      return;
+    }
+
+    await browser.storage.local.set({
+      pairings: importData.pairings || [],
+      groups: importData.groups || [],
+      autoTidyEnabled: importData.autoTidyEnabled ?? false
+    });
+
+    await loadGroups(browser);  // Add browser parameter
+    await loadPairings(browser);  // Add browser parameter
+    await loadSettings();
+    showStatus('Recommended defaults loaded');
+  } catch (error) {
+    alert(`Failed to load recommended defaults: ${error.message}`);
+  }
+}
+
+/**
  * Import settings from JSON file
  */
 export async function importSettings(file, browser, loadGroups, loadPairings, loadSettings) {
@@ -98,41 +126,13 @@ export async function importSettings(file, browser, loadGroups, loadPairings, lo
       autoTidyEnabled: importData.autoTidyEnabled ?? false
     });
     
-    await loadGroups();
-    await loadPairings();
+    await loadGroups(browser);  // Add browser parameter
+    await loadPairings(browser);  // Add browser parameter
     await loadSettings();
     
     showStatus('Settings imported successfully');
   } catch (error) {
     alert(`Import failed: ${error.message}`);
-  }
-}
-
-/**
- * Load recommended defaults from config file
- */
-export async function loadRecommendedDefaults(browser, loadGroups, loadPairings, loadSettings) {
-  try {
-    const resp = await fetch('../default-config.json');
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const importData = await resp.json();
-
-    if (!confirm('This will replace all current settings with the recommended defaults. Continue?')) {
-      return;
-    }
-
-    await browser.storage.local.set({
-      pairings: importData.pairings || [],
-      groups: importData.groups || [],
-      autoTidyEnabled: importData.autoTidyEnabled ?? false
-    });
-
-    await loadGroups();
-    await loadPairings();
-    await loadSettings();
-    showStatus('Recommended defaults loaded');
-  } catch (error) {
-    alert(`Failed to load recommended defaults: ${error.message}`);
   }
 }
 
@@ -154,8 +154,8 @@ export async function clearAllSettings(browser, loadGroups, loadPairings, loadSe
     autoTidyEnabled: false
   });
 
-  await loadGroups();
-  await loadPairings();
+  await loadGroups(browser);  // Add browser parameter
+  await loadPairings(browser);  // Add browser parameter
   await loadSettings();
   showStatus('All settings cleared');
 }
