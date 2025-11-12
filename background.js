@@ -150,6 +150,25 @@ async function getFocusedNormalWindow() {
   return win;
 }
 
+// Helper: Check if a tab is a Zen Browser Glance tab
+function isGlanceTab(tab) {
+  // Zen Browser marks Glance tabs with specific properties
+  // They may have skipTabGroups, be in a special container, or have other markers
+  return tab.skipTabGroups === true || 
+         tab.isInZenSidebar === true ||
+         tab.hidden === true || // Glance tabs are often hidden
+         (tab.cookieStoreId && tab.cookieStoreId.includes('zen-glance')) ||
+         (tab.url && tab.url.startsWith('about:blank')) && tab.discarded; // Temporary Glance tabs
+}
+
+// Helper: Check if a tab is bookmarked in Zen Browser
+const isBookmarkedTab = (tab) => {
+  // Zen Browser specific: bookmarked tabs have skipTabGroups or are in a special container
+  return tab.skipTabGroups === true || 
+         tab.isInZenSidebar === true ||
+         (tab.cookieStoreId && tab.cookieStoreId.includes('zen-sidebar'));
+};
+
 // Main action: rename tabs based on pairings and organize by groups
 async function tidy() {
   const currentWindow = await getFocusedNormalWindow();
@@ -166,26 +185,23 @@ async function tidy() {
   // In Zen Browser, we need to exclude from reordering:
   // 1. Pinned tabs (tab.pinned === true)
   // 2. Bookmarked tabs (they sit between pinned and regular tabs)
+  // 3. Glance tabs (temporary preview tabs)
   
-  // Zen Browser marks bookmarked tabs with a special attribute
-  // They are unpinned but should not be moved
-  const isBookmarkedTab = (tab) => {
-    // Zen Browser specific: bookmarked tabs have skipTabGroups or are in a special container
-    return tab.skipTabGroups === true || 
-           tab.isInZenSidebar === true ||
-           (tab.cookieStoreId && tab.cookieStoreId.includes('zen-sidebar'));
-  };
-
   // Separate tabs into categories
   const pinnedTabs = tabs.filter(tab => tab.pinned);
   const bookmarkedTabs = tabs.filter(tab => !tab.pinned && isBookmarkedTab(tab));
-  const regularTabs = tabs.filter(tab => !tab.pinned && !isBookmarkedTab(tab));
+  const glanceTabs = tabs.filter(tab => !tab.pinned && !isBookmarkedTab(tab) && isGlanceTab(tab));
+  const regularTabs = tabs.filter(tab => 
+    !tab.pinned && 
+    !isBookmarkedTab(tab) && 
+    !isGlanceTab(tab)
+  );
   
   if (regularTabs.length === 0) return;
 
-  // Find the safe starting index: after all pinned and bookmarked tabs
+  // Find the safe starting index: after all pinned, bookmarked, and Glance tabs
   // This is where regular tabs should start
-  const allImmovableTabs = [...pinnedTabs, ...bookmarkedTabs];
+  const allImmovableTabs = [...pinnedTabs, ...bookmarkedTabs, ...glanceTabs];
   const safeStartIndex = allImmovableTabs.length > 0 
     ? Math.max(...allImmovableTabs.map(t => t.index)) + 1
     : 0;
@@ -246,7 +262,7 @@ async function tidy() {
       
       displayTitle = titleParts.join(' ');
     }
-    
+
     // Get group order (ungrouped tabs go to end)
     const groupOrder = groupName ? (groupOrderMap.get(groupName) ?? groups.length) : groups.length;
     
@@ -280,7 +296,7 @@ async function tidy() {
   );
 
   // Move tabs into their sorted order, starting from the safe index
-  // This ensures we NEVER move tabs above pinned/bookmarked tabs
+  // This ensures we NEVER move tabs above pinned/bookmarked/Glance tabs
   const tabIds = tabsWithGroups.map(({ tab }) => tab.id);
   
   if (tabIds.length > 0) {
