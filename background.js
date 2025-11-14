@@ -10,6 +10,9 @@ const originalTitles = new Map();
 const glanceTabIds = new Set();
 const isSplitViewTab = (tab) => typeof tab?.groupId === 'number' && tab.groupId !== -1;
 
+// Track which tabs were opened from pinned sources
+const pinnedTabIds = new Set();
+
 // Debounce timer for auto-tidy
 let autoTidyTimeout = null;
 
@@ -115,29 +118,29 @@ async function renameTab(tabId, title) {
 async function isGlanceTab(tab) {
   if (!tab) return false;
 
-  if (isSplitViewTab(tab)) {
-    if (glanceTabIds.delete(tab.id)) {
-      console.debug('Split-view tab removed from Glance tracking:', tab.id);
-    }
-    return false;
-  }
-
+  // Already confirmed Glance until it grows to full size
   if (glanceTabIds.has(tab.id)) {
+    const win = await browser.windows.get(tab.windowId);
+    const widthRatio = (tab.width ?? win.width) / win.width;
+    const heightRatio = (tab.height ?? win.height) / win.height;
+    if (widthRatio >= 0.95 && heightRatio >= 0.9) {
+      glanceTabIds.delete(tab.id);
+      return false;
+    }
     return true;
   }
 
   const win = await browser.windows.get(tab.windowId);
-  const widthRatio = tab.width && win.width ? tab.width / win.width : 1;
-  const heightRatio = tab.height && win.height ? tab.height / win.height : 1;
+  const widthRatio = (tab.width ?? win.width) / win.width;
+  const heightRatio = (tab.height ?? win.height) / win.height;
+  const openedFromPinned = typeof tab.openerTabId === 'number' && pinnedTabIds.has(tab.openerTabId);
 
-  const looksLikeGlance = widthRatio < 0.75 || heightRatio < 0.85;
-
+  const looksLikeGlance = openedFromPinned && (widthRatio <= 0.55 || heightRatio <= 0.7);
   if (looksLikeGlance) {
     glanceTabIds.add(tab.id);
     return true;
   }
 
-  glanceTabIds.delete(tab.id);
   return false;
 }
 
