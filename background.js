@@ -117,31 +117,54 @@ async function renameTab(tabId, title) {
 // Helper: Check if a tab is a Zen Browser Glance tab
 async function isGlanceTab(tab) {
   if (!tab) return false;
+  console.debug(`[isGlanceTab] start: tabId=${tab.id} windowId=${tab.windowId} title="${tab.title}" url="${tab.url}"`);
 
   // Already confirmed Glance until it grows to full size
   if (glanceTabIds.has(tab.id)) {
-    const win = await browser.windows.get(tab.windowId);
-    const widthRatio = (tab.width ?? win.width) / win.width;
-    const heightRatio = (tab.height ?? win.height) / win.height;
-    if (widthRatio >= 0.95 && heightRatio >= 0.9) {
+    try {
+      const win = await browser.windows.get(tab.windowId);
+      console.log(`[isGlanceTab] re-checking previously-flagged Glance tab ${tab.id} in window ${tab.windowId}`);
+      const widthRatio = tab.width / win.width;
+      const heightRatio = tab.height / win.height;
+      console.log(`[isGlanceTab] dimensions: tab width=${tab.width} height=${tab.height}, window width=${win.width} height=${win.height}`);
+      console.log(`[isGlanceTab] ratios: widthRatio=${widthRatio.toFixed(2)} heightRatio=${heightRatio.toFixed(2)}`);
+      const widthCutoff = 0.9;
+      const heightCutoff = 0.95;
+
+      if (widthRatio >= widthCutoff || heightRatio >= heightCutoff) {
+        console.debug('[isGlanceTab] no longer a Glance tab based on size ratios');
+        glanceTabIds.delete(tab.id);
+        return false;
+      } else {
+        console.debug('[isGlanceTab] still a Glance tab based on size ratios');
+      }
+      return true;
+    } catch (e) {
+      console.debug('[isGlanceTab] previously-flagged: window lookup failed -> clearing', e);
       glanceTabIds.delete(tab.id);
       return false;
     }
-    return true;
   }
 
-  const win = await browser.windows.get(tab.windowId);
-  const widthRatio = (tab.width ?? win.width) / win.width;
-  const heightRatio = (tab.height ?? win.height) / win.height;
-  const openedFromPinned = typeof tab.openerTabId === 'number' && pinnedTabIds.has(tab.openerTabId);
-
-  const looksLikeGlance = openedFromPinned && (widthRatio <= 0.55 || heightRatio <= 0.7);
-  if (looksLikeGlance) {
-    glanceTabIds.add(tab.id);
-    return true;
+  try {
+    const win = await browser.windows.get(tab.windowId);
+    console.log(`[isGlanceTab] Checking new Glance tab ${tab.id} in window ${tab.windowId}`);
+    const widthRatio = tab.width / win.width;
+    const heightRatio = tab.height / win.height;
+    console.log(`[isGlanceTab] dimensions: tab width=${tab.width} height=${tab.height}, window width=${win.width} height=${win.height}`);
+    console.log(`[isGlanceTab] ratios: widthRatio=${widthRatio.toFixed(2)} heightRatio=${heightRatio.toFixed(2)}`);
+    const widthCutoff = 0.9;
+    const heightCutoff = 0.95;
+    const looksLikeGlance = widthRatio <= widthCutoff || heightRatio <= heightCutoff;
+    if (looksLikeGlance) {
+      glanceTabIds.add(tab.id);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.debug('[isGlanceTab] error computing Glance status:', error);
+    return false;
   }
-
-  return false;
 }
 
 // Helper: Check if a tab is bookmarked in Zen Browser
@@ -176,7 +199,7 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     console.debug('⏭️ Skipping auto-tidy: tab is a Glance tab', tab.id);
     return;
   }
-  
+
   // Don't trigger auto-tidy if the updated tab is bookmarked
   if (isBookmarkedTab(tab)) {
     console.debug('⏭️ Skipping auto-tidy: tab is a bookmarked tab', tab.id);
@@ -253,26 +276,6 @@ async function tidy() {
     tabs.map(async (tab) => [tab.id, await isGlanceTab(tab)])
   );
   const glanceLookup = new Map(glanceEntries);
-
-  // DEBUG: Log all tabs to see their properties
-  console.log('=== ALL TABS IN WINDOW ===');
-  tabs.forEach(tab => {
-    console.log(`Tab ${tab.id} (index ${tab.index}):`, {
-      title: tab.title,
-      url: tab.url,
-      pinned: tab.pinned,
-      hidden: tab.hidden,
-      skipTabGroups: tab.skipTabGroups,
-      isInZenSidebar: tab.isInZenSidebar,
-      cookieStoreId: tab.cookieStoreId,
-      status: tab.status,
-      discarded: tab.discarded,
-      isTrackedGlance: glanceTabIds.has(tab.id),
-      active: tab.active,
-      highlighted: tab.highlighted
-    });
-  });
-  console.log('========================\n');
 
   // Separate tabs into categories
   const pinnedTabs = tabs.filter(tab => tab.pinned);
